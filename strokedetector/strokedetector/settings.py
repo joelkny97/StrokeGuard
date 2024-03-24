@@ -136,3 +136,6 @@ MEDIA_ROOT = BASE_DIR / "mediafiles"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+#Pytorch Model
+
+MODEL_PATH = BASE_DIR / "model" / "best_model_params.pt"

@@ -40,6 +40,18 @@ video {
   transform: scaleX(-1);
   filter: FlipH;
 }
+#resultBox {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  text-align: center;
+  padding: 15px 0;
+  font-size: 18px;
+  border-top: 2px solid #ffffff;
+}
     </style>
 
 <body>
@@ -69,7 +81,7 @@ video {
       </div>
 
 
-
+      <div id="resultBox">Your results will appear here...</div>
     <script>
         
 
@@ -118,6 +130,25 @@ btnCapture.addEventListener('click', function() {
   
 });
 
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          // Does this cookie string begin with the name we want?
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+          }
+      }
+  }
+  return cookieValue;
+}
+ // Fetch the CSRF token from the cookies
+ const csrftoken = getCookie('csrftoken');
+ 
 // Upload image to server - ajax call - with the help of base64 data as a parameter
 const btnSave = document.querySelector("#btnSave");
 
@@ -141,7 +172,7 @@ btnSave.addEventListener('click', async function() {
     const response = await fetch("predict/", {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json; charset=utf-8'
+        'Content-Type': 'application/json; charset=utf-8',"X-CSRF-TOKEN": $('meta[name="token"]').attr('content')
       },
       body: JSON.stringify({
         imageData: imagebase64data
@@ -217,34 +248,38 @@ async function capturePhoto() {
 }
 
 async function sendToServer(blob) {
-    const formData = new FormData();
-    formData.append('photo', blob, 'captured-photo.jpg'); // Adjust the field name and filename
-    
-    try {
-        const response = await fetch('predict/', {
-            method: 'POST',
-            body: formData, // Use FormData directly without setting Content-Type
-            headers: {
-                'Accept': 'application/json',
-                "Content-Type": "multipart/form-data",
-                 "x-csrf-token": _csrf
-            }
-        });
-
-        if (response.ok) {
-            console.log('Photo sent to server successfully!');
-        } else {
-            console.error('Error sending photo to server:', response.statusText);
-        }
-    } catch (error) {
-        console.error('Network error:', error);
-    }
-}
+  const formData = new FormData();
+  formData.append('photo', blob, 'captured-photo.jpg'); // Adjust the field name and filename
+ 
+  // Fetch the CSRF token from the cookies
+  const csrftoken = getCookie('csrftoken');
+ 
+  try {
+       const response = await fetch('predict/', {
+           method: 'POST',
+           body: formData, // Use FormData directly without setting Content-Type
+           headers: {
+               'Accept': 'application/json',
+               "X-CSRFToken": csrftoken // Include the CSRF token in the request headers
+           }
+       });
+ 
+       if (response.ok) {
+           console.log('Photo sent to server successfully!');
+       } else {
+           console.error('Error sending photo to server:', response.statusText);
+       }
+  } catch (error) {
+       console.error('Network error:', error);
+  }
+ }
+ 
 
 
 
    </script>
    
+
 </body>
 </html>
 

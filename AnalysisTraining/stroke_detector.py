@@ -51,6 +51,9 @@ class StrokeDetectorClassifier():
         
         
         self.device =torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.fc = nn.Linear(self.model.fc.in_features, 2)
+        self.model = self.model.to(self.device)
+        self.class_names = ['no_strokeData', 'strokeData']
         
 
         self.dataloders = None
@@ -213,6 +216,6 @@ if __name__ == "__main__":
     # sd.load_model("model/best_model_params.pt")
     test_img = Image.open("Datasets/Strokefaces/droopy/27_01.jpg")
     
-    print(sd.predict(sd.model,"model/best_model_params.pt", test_img ) )
+    print(sd.predict("model/best_model_params.pt", test_img ) )
 
 

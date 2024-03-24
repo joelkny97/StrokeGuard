@@ -1,15 +1,20 @@
 from django.shortcuts import render
-from django.http import StreamingHttpResponse, HttpResponseRedirect
+from django.http import StreamingHttpResponse, HttpResponseRedirect, JsonResponse
 from .util.camera import generate_frames, VideoCamera
 # from .classifier.stroke_classifier import StrokeDetectorClassifier
 import random
 from .forms import ImageUploadForm
 import base64
 from .classifier.stroke_classifier import StrokeDetectorClassifier
-
+from PIL import Image
+from django.conf import settings
+import io
 # Create your views here.
 
-
+CLASSIFICATION_DICT = {
+    'no_strokeData': 'No Stroke',
+    'strokeData': 'Stroke'
+}
 
 def index(request):
     context={}
@@ -71,8 +76,31 @@ def retrain(request):
 
 def predict(request):
     if request.method == 'POST':
-        request['image'] = request.POST.get('image')
+        image_file = request.FILES.get('photo')
+        
+        if image_file:
+            try:
+               
+                # Split the base64 string to remove the data URL part
+                image_str = image_file.read().decode('utf-8')
 
-        context = {}
-        return render(request, HttpResponseRedirect('predict.html'), context=context)
-    return render(request, 'predict.html')
+                # Decode the base64 string
+                image = base64.b64decode(image_str)
+
+                image = Image.open(image_file)
+                
+                prediction = StrokeDetectorClassifier().predict(settings.MODEL_PATH, image)
+                print(CLASSIFICATION_DICT[prediction])
+                context = {
+                    'prediction': CLASSIFICATION_DICT[prediction]
+                }
+                
+                return render(request, HttpResponseRedirect('index.html'), context=context)
+                
+
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status=500)
+        else:
+            return JsonResponse({'error': 'No image file found'}, status=400)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
