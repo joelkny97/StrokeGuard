@@ -8,4 +8,5 @@ urlpatterns = [
     path('stream/', views.stream_page, name='stream_page'),
     path('streaming/', views.streaming, name='streaming'),
     path('about/', views.about, name='about' ),
+    path('predict/', views.predict, name='predict'),
 ]

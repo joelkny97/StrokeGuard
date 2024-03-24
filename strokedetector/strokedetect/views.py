@@ -5,6 +5,7 @@ from .util.camera import generate_frames, VideoCamera
 import random
 from .forms import ImageUploadForm
 import base64
+from .classifier.stroke_classifier import StrokeDetectorClassifier
 
 # Create your views here.
 
@@ -40,7 +41,7 @@ def streaming(request):
 def retrain(request):
     image_uri = None
     predicted_label = None
-    
+
     if request.method == 'POST':
         form = ImageUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -68,4 +69,10 @@ def retrain(request):
 
     return render(request, 'retrain.html', context)
 
+def predict(request):
+    if request.method == 'POST':
+        request['image'] = request.POST.get('image')
 
+        context = {}
+        return render(request, HttpResponseRedirect('predict.html'), context=context)
+    return render(request, 'predict.html')

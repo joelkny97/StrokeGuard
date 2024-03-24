@@ -138,9 +138,10 @@ class StrokeDetectorClassifier():
     def load_model(self, model_path):
         self.model.load_state_dict(torch.load(model_path))
 
-    def predict(self, mode_dict_path,model, image: Image ):
-
-        self.model.load_model()
+    def predict(self, mode_dict_path, image: Image ):
+        model = self.model
+        with open(mode_dict_path, 'rb') as f:
+            self.model.load_state_dict(torch.load(f ) )
         was_training = model.training
         model.eval()
 
@@ -210,6 +211,8 @@ if __name__ == "__main__":
     # img_data = sd.preprocess_data("Datasets/Binary")
     # model_inst = sd.train_model( num_epochs=25)
     # sd.load_model("model/best_model_params.pt")
-    print(sd.predict(sd.model, Image.open("Datasets/Strokefaces/droopy/27_01.jpg")))
+    test_img = Image.open("Datasets/Strokefaces/droopy/27_01.jpg")
+    
+    print(sd.predict(sd.model,"model/best_model_params.pt", test_img ) )
 
 

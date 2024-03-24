@@ -29,98 +29,220 @@
             
             margin-top:20px;
         }
+        
+video {
+  transform: scaleX(-1);
+  margin-top: 5px;
+}
+
+/* Flipping the canvas image as it was not mirror view */
+#canvas {
+  transform: scaleX(-1);
+  filter: FlipH;
+}
     </style>
 
 <body>
-    <div class="image-box" align="center" >
-        <table>
-            <tr>
-                <td>
-                    <video id="webcam-video" autoplay playsinline controls></video>
-                </td>
-            </tr>
-        </table>
-        <button id="snapButton" class="btn btn-dark" margin-top="20px">Take photo</button>
-        <button id="toggleCameraButton" class="btn btn-dark">Toggle Camera</button>
+    <div class="jumbotron" style="margin-top:20px;padding:20px;">
+        <p><span id="errorMsg"></span></p>
+        <div class="row">
+          <div class="col-lg-6">
+            <!-- Here we stream video from the webcam -->
+            <h4>
+              <FONT COLOR = white> Video coming from Webcam
+              <button class="btn btn-primary" id="btnCapture">Capture to Canvas >></button>
+              <button class="btn btn-primary" id="toggleCamera">Toggle Camera</button>
 
-        
-    </div>
-    <div class="results">
-        
+            </h4>
+            <video id="video" playsinline autoplay alt="Webcam video stream"></video>
+          </div>
+      
+          <div class="col-lg-6">
+            <h4>
+            <FONT COLOR = white> Captured image from Webcam
+              <button type="submit" class="btn btn-primary" id="btnSave" name="btnSave">Save the canvas (image) to server</button>
+            </h4>
+            <!-- Webcam video snapshot -->
+            <canvas id="canvas" width="475" height="475" alt="Canvas image"></canvas>
+          </div>
+        </div>
+      </div>
 
-    </div>
+
+
     <script>
-        // Variable to keep track of whether the webcam is currently on
-        var isCameraOn = false;
-   
-        // Function to toggle the webcam on and off
-        function toggleCamera() {
-            var video = document.getElementById('webcam-video');
-            if (isCameraOn) {
-                // Stop the webcam stream
-                if (video.srcObject) {
-                    var tracks = video.srcObject.getTracks();
-                    tracks.forEach(function(track) {
-                        track.stop();
-                    });
-                    video.srcObject = null;
-                    document.getElementById('fallback-image').style.display = 'block';
-                }
-                isCameraOn = false;
-            } else {
-                // Start the webcam
-                startWebcam();
-                isCameraOn = true;
+        
+
+        const video = document.querySelector("#video");
+
+// Basic settings for the video to get from Webcam
+const constraints = {
+  audio: false,
+  video: {
+    width: 475,
+    height: 475
+  }
+};
+
+// This condition will ask permission to user for Webcam access
+if (navigator.mediaDevices.getUserMedia) {
+  navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      video.srcObject = stream;
+    })
+    .catch(function(err0r) {
+      console.log("Something went wrong!");
+    });
+}
+
+function stop(e) {
+  const stream = video.srcObject;
+  const tracks = stream.getTracks();
+
+  for (let i = 0; i < tracks.length; i++) {
+    const track = tracks[i];
+    track.stop();
+  }
+  video.srcObject = null;
+}
+
+
+// Below code to capture image from Video tag (Webcam streaming)
+const btnCapture = document.querySelector("#btnCapture");
+const canvas = document.getElementById('canvas');
+
+btnCapture.addEventListener('click', function() {
+  const context = canvas.getContext('2d');
+  // Capture the image into canvas from Webcam streaming Video element
+  context.drawImage(video, 0, 0);
+  
+});
+
+// Upload image to server - ajax call - with the help of base64 data as a parameter
+const btnSave = document.querySelector("#btnSave");
+
+btnSave.addEventListener('click', async function() {
+  // Below new canvas to generate flip/mirror image from existing canvas
+  const destinationCanvas = document.createElement("canvas");
+  const destCtx = destinationCanvas.getContext('2d');
+
+  destinationCanvas.height = 500;
+  destinationCanvas.width = 500;
+
+  destCtx.translate(video.videoWidth, 0);
+  destCtx.scale(-1, 1);
+  destCtx.drawImage(document.getElementById("canvas"), 0, 0);
+
+  // Get base64 data to send to server for upload
+  let imagebase64data = destinationCanvas.toDataURL("image/png");
+  imagebase64data = imagebase64data.replace('data:image/png;base64,', '');
+
+  try {
+    const response = await fetch("predict/", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8'
+      },
+      body: JSON.stringify({
+        imageData: imagebase64data
+      })
+    });
+
+    if (response.ok) {
+      alert('Image uploaded successfully..');
+    } else {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error while uploading image:', error);
+  }
+});
+
+
+
+    if (navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(function(stream) {
+          video.srcObject = stream;
+        })
+        .catch(function(err) {
+          console.log("Something went wrong!");
+        });
+    }
+
+    function toggleCamera() {
+      if (video.srcObject) {
+        const stream = video.srcObject;
+        const tracks = stream.getTracks();
+        tracks.forEach(function(track) {
+          track.stop();
+        });
+        video.srcObject = null;
+      } else {
+        navigator.mediaDevices.getUserMedia(constraints)
+          .then(function(stream) {
+            video.srcObject = stream;
+          })
+          .catch(function(err) {
+            console.log("Something went wrong!");
+          });
+      }
+    }
+
+    document.getElementById('toggleCamera').addEventListener('click', toggleCamera);
+
+    // video-capture.js
+
+// Event listener for "Take Photo" button
+document.getElementById('btnSave').addEventListener('click', async function() {
+    try {
+        const blob = await capturePhoto(); // Assuming capturePhoto() returns a Blob
+        await sendToServer(blob); // Send the captured photo to the backend
+        console.log('Photo sent successfully!');
+    } catch (error) {
+        console.error('Error sending photo:', error);
+    }
+});
+
+async function capturePhoto() {
+    const video = document.getElementById('video');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageUrl = canvas.toDataURL('image/png');
+    const blob = await fetch(imageUrl).then((res) => res.blob()); // Convert data URL to Blob
+    return blob;
+}
+
+async function sendToServer(blob) {
+    const formData = new FormData();
+    formData.append('photo', blob, 'captured-photo.jpg'); // Adjust the field name and filename
+    
+    try {
+        const response = await fetch('predict/', {
+            method: 'POST',
+            body: formData, // Use FormData directly without setting Content-Type
+            headers: {
+                'Accept': 'application/json',
+                "Content-Type": "multipart/form-data",
+                 "x-csrf-token": _csrf
             }
-        }
-   
-        // Function to start the webcam and display video inside .image-box
-        function startWebcam() {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(stream) {
-                    var video = document.getElementById('webcam-video');
-                    video.srcObject = stream;
-                    document.getElementById('fallback-image').style.display = 'none';
-                    document.querySelector('.image-box').appendChild(video); // Append video to .image-box
-                })
-                .catch(function(err) {
-                    console.error('Error accessing the camera: ', err);
-                    document.getElementById('fallback-image').style.display = 'block';
-                });
-        }
-   
-        // Function to capture photo
-        function capturePhoto() {
-            var video = document.getElementById('webcam-video');
-            var canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            var context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            var imageUrl = canvas.toDataURL('image/png');
-            var link = document.createElement('a');
-            link.href = imageUrl;
-            link.download = 'photo.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            document.querySelector('.results').textContent = 'Success!';
-        }
-   
-        // Event listener for "Take Photo" button
-        document.getElementById('snapButton').addEventListener('click', function() {
-            capturePhoto();
         });
-   
-        // Event listener for the "Toggle Camera" button
-        document.getElementById('toggleCameraButton').addEventListener('click', function() {
-            toggleCamera();
-        });
-   
-        // Commented out the line that starts the webcam when the page loads
-        // window.addEventListener('load', function() {
-        //     startWebcam();
-        // });
+
+        if (response.ok) {
+            console.log('Photo sent to server successfully!');
+        } else {
+            console.error('Error sending photo to server:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Network error:', error);
+    }
+}
+
+
+
    </script>
    
 </body>
