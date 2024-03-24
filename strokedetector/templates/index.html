@@ -5,24 +5,32 @@
 
 {% block content %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera Web App</title>
-    <link rel="stylesheet" href="styles.css">
+
     <style>
+        body{
+            background-color: black;
+            background-image: url("/static/assets/bg.png");
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
         .results {
             margin-top: 20px;
             padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
+            background-color: #000000;
             width: 100%;
             text-align: center;
+            color:white;
+        }
+        #snapButton{
+            
+            margin-top:20px;
+        }
+        #toggleCameraButton{
+            
+            margin-top:20px;
         }
     </style>
-</head>
+
 <body>
     <div class="image-box" align="center" >
         <table>
@@ -32,8 +40,8 @@
                 </td>
             </tr>
         </table>
-        <button id="snapButton">Take Photo</button>
-        <button id="toggleCameraButton">Toggle Camera</button>
+        <button id="snapButton" class="btn btn-dark" margin-top="20px">Take photo</button>
+        <button id="toggleCameraButton" class="btn btn-dark">Toggle Camera</button>
 
         
     </div>
@@ -42,82 +50,79 @@
 
     </div>
     <script>
-
-
-
-     // Variable to keep track of whether the webcam is currently on
-     var isCameraOn = false;
-
-     // Function to toggle the webcam on and off
-     function toggleCamera() {
-         var video = document.getElementById('webcam-video');
-         if (isCameraOn) {
-             // Stop the webcam stream
-             if (video.srcObject) {
-                 var tracks = video.srcObject.getTracks();
-                 tracks.forEach(function(track) {
-                     track.stop();
-                 });
-                 video.srcObject = null;
-                 document.getElementById('fallback-image').style.display = 'block';
-             }
-             isCameraOn = false;
-         } else {
-             // Start the webcam
-             startWebcam();
-             isCameraOn = true;
-         }
-     }
-
-     // Function to start the webcam and display video inside .image-box
-     function startWebcam() {
-         navigator.mediaDevices.getUserMedia({ video: true })
-             .then(function(stream) {
-                 var video = document.getElementById('webcam-video');
-                 video.srcObject = stream;
-                 document.getElementById('fallback-image').style.display = 'none';
-                 document.querySelector('.image-box').appendChild(video); // Append video to .image-box
-             })
-             .catch(function(err) {
-                 console.error('Error accessing the camera: ', err);
-                 document.getElementById('fallback-image').style.display = 'block';
-             });
-     }
-
-     // Function to capture photo
-     function capturePhoto() {
-         var video = document.getElementById('webcam-video');
-         var canvas = document.createElement('canvas');
-         canvas.width = video.videoWidth;
-         canvas.height = video.videoHeight;
-         var context = canvas.getContext('2d');
-         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-         var imageUrl = canvas.toDataURL('image/png');
-         var link = document.createElement('a');
-         link.href = imageUrl;
-         link.download = 'photo.png';
-         document.body.appendChild(link);
-         link.click();
-         document.body.removeChild(link);
-         document.querySelector('.results').textContent = 'This person has a stroke!';
-
-     }
-
-     // Event listener for "Take Photo" button
-     document.getElementById('snapButton').addEventListener('click', function() {
-         capturePhoto();
-     });
-
-     // Event listener for the "Toggle Camera" button
-     document.getElementById('toggleCameraButton').addEventListener('click', function() {
-         toggleCamera();
-     });
-
-     // Start webcam when the page loads
-     window.addEventListener('load', function() {
-         startWebcam();
-     });
-    </script>
+        // Variable to keep track of whether the webcam is currently on
+        var isCameraOn = false;
+   
+        // Function to toggle the webcam on and off
+        function toggleCamera() {
+            var video = document.getElementById('webcam-video');
+            if (isCameraOn) {
+                // Stop the webcam stream
+                if (video.srcObject) {
+                    var tracks = video.srcObject.getTracks();
+                    tracks.forEach(function(track) {
+                        track.stop();
+                    });
+                    video.srcObject = null;
+                    document.getElementById('fallback-image').style.display = 'block';
+                }
+                isCameraOn = false;
+            } else {
+                // Start the webcam
+                startWebcam();
+                isCameraOn = true;
+            }
+        }
+   
+        // Function to start the webcam and display video inside .image-box
+        function startWebcam() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    var video = document.getElementById('webcam-video');
+                    video.srcObject = stream;
+                    document.getElementById('fallback-image').style.display = 'none';
+                    document.querySelector('.image-box').appendChild(video); // Append video to .image-box
+                })
+                .catch(function(err) {
+                    console.error('Error accessing the camera: ', err);
+                    document.getElementById('fallback-image').style.display = 'block';
+                });
+        }
+   
+        // Function to capture photo
+        function capturePhoto() {
+            var video = document.getElementById('webcam-video');
+            var canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            var context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            var imageUrl = canvas.toDataURL('image/png');
+            var link = document.createElement('a');
+            link.href = imageUrl;
+            link.download = 'photo.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            document.querySelector('.results').textContent = 'Success!';
+        }
+   
+        // Event listener for "Take Photo" button
+        document.getElementById('snapButton').addEventListener('click', function() {
+            capturePhoto();
+        });
+   
+        // Event listener for the "Toggle Camera" button
+        document.getElementById('toggleCameraButton').addEventListener('click', function() {
+            toggleCamera();
+        });
+   
+        // Commented out the line that starts the webcam when the page loads
+        // window.addEventListener('load', function() {
+        //     startWebcam();
+        // });
+   </script>
+   
 </body>
 </html>
 

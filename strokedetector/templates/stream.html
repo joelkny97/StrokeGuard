@@ -1,0 +1,43 @@
+{% extends 'navbar.html' %}
+
+{% load static %}
+
+{% block title %} Stream {% endblock %}
+
+{% block content %}
+
+<h1>Stream CV</h1>
+
+<div class="stream-box" > 
+    <img style=" height: 400px; width: 300px;" src="{% url 'streaming' %}">
+</div>
+<button id="toggleCameraButton" class="btn btn-dark">Toggle Camera</button>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+        var isCameraOn = false;
+   
+        // Function to toggle the webcam on and off
+        function toggleCamera() {
+            var video = document.getElementById('stream-box');
+            if (isCameraOn) {
+                // Stop the webcam stream
+                if (video.srcObject) {
+                    var tracks = video.srcObject.getTracks();
+                    tracks.forEach(function(track) {
+                        track.stop();
+                    });
+                    video.srcObject = null;
+                    document.getElementById('fallback-image').style.display = 'block';
+                }
+                isCameraOn = false;
+            } else {
+                // Start the webcam
+                isCameraOn = true;
+            }
+        }
+</script>
+{% endblock %}

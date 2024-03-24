@@ -5,3 +5,5 @@ strokedetector/strokedetect/migrations/__pycache__/**
 strokedetector/strokedetect/util/__pycache__/**
 
 AnalysisTraining/Datasets
+strokedetector/node_modules/**
+strokedetector/strokedetect/classifier/__pycache__/**
