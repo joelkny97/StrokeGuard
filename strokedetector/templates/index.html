@@ -64,11 +64,10 @@ video {
               <FONT COLOR = white> Video coming from Webcam
               <button class="btn btn-primary" id="btnCapture">Capture to Canvas >></button>
               <button class="btn btn-primary" id="toggleCamera">Toggle Camera</button>
-
             </h4>
             <video id="video" playsinline autoplay alt="Webcam video stream"></video>
           </div>
-      
+
           <div class="col-lg-6">
             <h4>
             <FONT COLOR = white> Captured image from Webcam
@@ -80,8 +79,8 @@ video {
         </div>
       </div>
 
-
-      <div id="resultBox">Your results will appear here...</div>
+    <div id="resultBox">Prediction : {{ prediction }}</div>
+   
     <script>
         
 
@@ -171,8 +170,9 @@ btnSave.addEventListener('click', async function() {
   try {
     const response = await fetch("predict/", {
       method: 'POST',
+      encodingtype: 'multipart/form-data',
       headers: {
-        'Content-Type': 'application/json; charset=utf-8',"X-CSRF-TOKEN": $('meta[name="token"]').attr('content')
+        'Content-Type': 'application/json; charset=utf-8',"X-CSRF-TOKEN": csrftoken
       },
       body: JSON.stringify({
         imageData: imagebase64data
@@ -258,6 +258,7 @@ async function sendToServer(blob) {
        const response = await fetch('predict/', {
            method: 'POST',
            body: formData, // Use FormData directly without setting Content-Type
+           encodingtype: 'multipart/form-data',
            headers: {
                'Accept': 'application/json',
                "X-CSRFToken": csrftoken // Include the CSRF token in the request headers

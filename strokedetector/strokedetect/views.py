@@ -9,7 +9,10 @@ from .classifier.stroke_classifier import StrokeDetectorClassifier
 from PIL import Image
 from django.conf import settings
 import io
+import json
+from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
+
 
 CLASSIFICATION_DICT = {
     'no_strokeData': 'No Stroke',
@@ -17,7 +20,7 @@ CLASSIFICATION_DICT = {
 }
 
 def index(request):
-    context={}
+    context={'prediction': 'No Stroke'}
     if request.method == 'POST':
         stroke = False
         # result = StrokeDetectorClassifier().predict()
@@ -73,6 +76,7 @@ def retrain(request):
     }
 
     return render(request, 'retrain.html', context)
+
 
 def predict(request):
     if request.method == 'POST':

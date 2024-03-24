@@ -4,6 +4,7 @@ import pathlib
 import sys
 from tempfile import TemporaryDirectory
 import numpy as np
+import matplotlib.pyplot as plt
 import cv2
 import torch 
 from glob import glob
@@ -19,7 +20,14 @@ from torchvision.models import resnet18, ResNet18_Weights
 from torch.utils.data import Subset
 import time
 from sklearn.model_selection import train_test_split
+from PIL import Image
+import os, random
 cudnn.benchmark = True
+
+CLASSIFICATION_DICT = {
+    'no_strokeData': 'No Stroke',
+    'strokeData': 'Stroke'
+}
 
 
 transforms = {
@@ -211,11 +219,18 @@ class StrokeDetectorClassifier():
 
 if __name__ == "__main__":
     sd = StrokeDetectorClassifier()
+    # For training Only
     # img_data = sd.preprocess_data("Datasets/Binary")
     # model_inst = sd.train_model( num_epochs=25)
-    # sd.load_model("model/best_model_params.pt")
-    test_img = Image.open("Datasets/Strokefaces/droopy/27_01.jpg")
-    
-    print(sd.predict("model/best_model_params.pt", test_img ) )
+
+    test_img = Image.open( os.path.join("Datasets/Strokefaces/droopy/",random.choice(os.listdir("Datasets/Strokefaces/droopy")) ) ) #random
+    # test_img = Image.open("Datasets/Strokefaces/droopy/images - 2019-08-23T112307.016.jpg") #manual
+    ax = plt.subplot(2,2,1)
+    ax.axis('off')
+    ax.set_title(f'Predicted: {CLASSIFICATION_DICT[sd.predict("model/best_model_params.pt", test_img )]}')
+    plt.imshow(test_img)
+    plt.show()
+
+
 
 
